@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/security
+           http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <security:http pattern="/assets/**" security="none"/>
+    <security:http pattern="/index.jsp" security="none"/>
+
+    <security:http use-expressions="true">
+                  <security:intercept-url pattern="/BancsLogin" access="permitAll"/>
+                  <security:intercept-url pattern="/**" access="isFullyAuthenticated()"/>
+
+                   <security:access-denied-handler error-page="/403" />
+
+                   <security:form-login login-processing-url="/login"
+                                        login-page="/BancsLogin"
+                                        default-target-url="/Homepage"
+                                        authentication-failure-url="/BancsLogin?error=true"
+                                        username-parameter="username"
+                                        password-parameter="password" />
+                    <security:logout logout-success-url="/BancsLogin?logout"/>
+                    <security:session-management>
+                            <security:concurrency-control max-sessions="1" expired-url="/BancsLogin?sessionExpired=true"/>
+                    </security:session-management>
+                   <!-- <security:csrf/>-->
+        </security:http>
+
+        <security:authentication-manager>
+            <security:authentication-provider>
+                <!--<security:user-service>
+                    <security:user name="nair" password="tcs123" authorities="ROLE_USER"/>
+                </security:user-service>-->
+                <security:jdbc-user-service data-source-ref="dataSource" users-by-username-query="select username,password,enabled from demo_users where username=?"
+                                            authorities-by-username-query="select username, role from demo_user_roles where username =?  " />
+
+            </security:authentication-provider>
+        </security:authentication-manager>
+
+    <bean id="authenticationSuccessHandler" name="authenticationSuccessHandler"
+          class="com.tcs.bancs.security.AuthenticationSuccessHandler"/>
+    <bean id="authenticationFailureHandler" name="authenticationFailureHandler"
+          class="com.tcs.bancs.security.AuthenticationFailHandler" />
+
+</beans>
